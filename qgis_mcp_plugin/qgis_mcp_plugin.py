@@ -7,13 +7,11 @@ import traceback
 from qgis.core import *
 from qgis.gui import *
 from qgis.PyQt.QtCore import QObject, pyqtSignal, QTimer, Qt, QSize
-from qgis.PyQt.QtWidgets import QAction, QDockWidget, QVBoxLayout, QLabel, QPushButton, QSpinBox, QWidget
+from qgis.PyQt.QtWidgets import QAction, QDockWidget, QVBoxLayout, QLabel, QPushButton, QSpinBox, QWidget, QFormLayout, QSpacerItem, QSizePolicy, QHBoxLayout
 from qgis.PyQt.QtGui import QIcon, QColor
 from qgis.utils import active_plugins
 
-class QgisMCPServer(QObject):
-    """Server class to handle socket connections and execute QGIS commands"""
-    
+class QgisMCPPluginServer(QObject):    
     def __init__(self, host='localhost', port=9876, iface=None):
         super().__init__()
         self.host = host
@@ -26,7 +24,6 @@ class QgisMCPServer(QObject):
         self.timer = None
     
     def start(self):
-        """Start the server"""
         self.running = True
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -41,15 +38,19 @@ class QgisMCPServer(QObject):
             self.timer.timeout.connect(self.process_server)
             self.timer.start(100)  # 100ms interval
             
-            QgsMessageLog.logMessage(f"QGIS MCP server started on {self.host}:{self.port}", "QGIS MCP")
+            QgsMessageLog.logMessage(
+                f"MCP plugin listening on {self.host}:{self.port}", 
+                "QGIS MCP"
+                )
             return True
         except Exception as e:
-            QgsMessageLog.logMessage(f"Failed to start server: {str(e)}", "QGIS MCP", Qgis.Critical)
+            QgsMessageLog.logMessage(
+                f"Failed to start: {str(e)}", "QGIS MCP", Qgis.Critical
+                )
             self.stop()
             return False
             
     def stop(self):
-        """Stop the server"""
         self.running = False
         
         if self.timer:
@@ -63,10 +64,9 @@ class QgisMCPServer(QObject):
             
         self.socket = None
         self.client = None
-        QgsMessageLog.logMessage("QGIS MCP server stopped", "QGIS MCP")
+        QgsMessageLog.logMessage("MCP plugin stopped", "QGIS MCP")
     
     def process_server(self):
-        """Process server operations (called by timer)"""
         if not self.running:
             return
             
@@ -127,7 +127,6 @@ class QgisMCPServer(QObject):
             QgsMessageLog.logMessage(f"Server error: {str(e)}", "QGIS MCP", Qgis.Critical)
 
     def execute_command(self, command):
-        """Execute a command"""
         try:
             cmd_type = command.get("type")
             params = command.get("params", {})
@@ -516,7 +515,6 @@ class QgisMCPServer(QObject):
 
 
 class QgisMCPDockWidget(QDockWidget):
-    """Dock widget for the QGIS MCP plugin"""
     closed = pyqtSignal()
     
     def __init__(self, iface):
@@ -526,78 +524,71 @@ class QgisMCPDockWidget(QDockWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Set up the dock widget UI"""
         # Create widget and layout
         widget = QWidget()
-        layout = QVBoxLayout()
+        layout = QFormLayout()  # This automatically aligns labels with their corresponding widgets
         widget.setLayout(layout)
-        
+
         # Add port selection
-        layout.addWidget(QLabel("Server Port:"))
         self.port_spin = QSpinBox()
         self.port_spin.setMinimum(1024)
         self.port_spin.setMaximum(65535)
         self.port_spin.setValue(9876)
-        layout.addWidget(self.port_spin)
-        
+        layout.addRow("Server Port:", self.port_spin)
+
         # Add server control buttons
-        self.start_button = QPushButton("Start Server")
+        buttons_layout = QHBoxLayout()
+        self.start_button = QPushButton("Start listening")
         self.start_button.clicked.connect(self.start_server)
-        layout.addWidget(self.start_button)
-        
-        self.stop_button = QPushButton("Stop Server")
+        self.stop_button = QPushButton("Stop listening")
         self.stop_button.clicked.connect(self.stop_server)
         self.stop_button.setEnabled(False)
-        layout.addWidget(self.stop_button)
-        
-        # Add status label
-        self.status_label = QLabel("Server: Stopped")
-        layout.addWidget(self.status_label)
-        
+        buttons_layout.addWidget(self.start_button)
+        buttons_layout.addWidget(self.stop_button)
+
+        layout.addRow("", buttons_layout)
+
+        # Add status label (this will be at the bottom)
+        self.status_label = QLabel("Stopped")
+        layout.addRow(self.status_label)
+
         # Add to dock widget
         self.setWidget(widget)
     
     def start_server(self):
-        """Start the server"""
         if not self.server:
             port = self.port_spin.value()
-            self.server = QgisMCPServer(port=port, iface=self.iface)
+            self.server = QgisMCPPluginServer(port=port, iface=self.iface)
             
         if self.server.start():
-            self.status_label.setText(f"Server: Running on port {self.server.port}")
+            self.status_label.setText(f"Listening on port {self.server.port}")
             self.start_button.setEnabled(False)
             self.stop_button.setEnabled(True)
             self.port_spin.setEnabled(False)
     
     def stop_server(self):
-        """Stop the server"""
         if self.server:
             self.server.stop()
             self.server = None
             
-        self.status_label.setText("Server: Stopped")
+        self.status_label.setText("Stopped")
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.port_spin.setEnabled(True)
         
     def closeEvent(self, event):
-        """Stop server on dock close"""
         self.stop_server()
         self.closed.emit()
         super().closeEvent(event)
 
 
-class QgisMCPPlugin:
-    """Main plugin class for QGIS MCP"""
-    
+class QgisMCPPlugin:    
     def __init__(self, iface):
         self.iface = iface
         self.dock_widget = None
         self.action = None
     
     def initGui(self):
-        """Initialize GUI"""
-        # Create action
         self.action = QAction(
             "QGIS MCP",
             self.iface.mainWindow()
@@ -605,12 +596,10 @@ class QgisMCPPlugin:
         self.action.setCheckable(True)
         self.action.triggered.connect(self.toggle_dock)
         
-        # Add to plugins menu and toolbar
         self.iface.addPluginToMenu("QGIS MCP", self.action)
         self.iface.addToolBarIcon(self.action)
     
     def toggle_dock(self, checked):
-        """Toggle the dock widget"""
         if checked:
             # Create dock widget if it doesn't exist
             if not self.dock_widget:
@@ -627,11 +616,9 @@ class QgisMCPPlugin:
                 self.dock_widget.hide()
     
     def dock_closed(self):
-        """Handle dock widget closed"""
         self.action.setChecked(False)
     
     def unload(self):
-        """Unload plugin"""
         # Stop server if running
         if self.dock_widget:
             self.dock_widget.stop_server()
