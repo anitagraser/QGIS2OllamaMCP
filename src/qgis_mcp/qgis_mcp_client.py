@@ -64,7 +64,7 @@ async def main():
     print()
 
     # The user's question
-    user_msg = "Please give me the QGIS info and then load the project from /home/anita/Documents/QGIS projects/Latvia.qgz"
+    user_msg = "Please give me the QGIS info and then load the project from /home/anita/Documents/QGIS projects/Latvia.qgz and list all the layers in the project"
     print(f"👤 User: {user_msg}\n")
 
     # Send to Ollama with tools available
