@@ -67,8 +67,12 @@ Will launch on localhost:9877/sse by default:
 
 You can launch an example conversation using: 
 
-`python src/qgis_mcp/qgis_mcp_client.py `
+`python src/qgis_mcp/qgis_mcp_client.py`
+
+Note: you need to update the project file path to point to a project file on your machine. 
 
 ![alt text](/assets/imgs/convo.png)
 
-Note: you need to update the project file path to point to a project file on your machine. 
+Then launch the interactive client to start experimenting: 
+
+`python src/qgis_mcp/qgis_mcp_client_interactive.py`
