@@ -84,8 +84,9 @@ def get_qgis_connection():
     if _qgis_connection is not None:
         # Test if the connection is still alive with a simple ping
         try:
-            # Just try to send a small message to check if the socket is still connected
-            _qgis_connection.sock.sendall(b'')
+            # Try to send an empty bytes to verify socket is connected.
+            # The QgisMCPServer uses attribute `socket`, not `sock`.
+            _qgis_connection.socket.sendall(b'')
             return _qgis_connection
         except Exception as e:
             # Connection is dead, close it and create a new one
