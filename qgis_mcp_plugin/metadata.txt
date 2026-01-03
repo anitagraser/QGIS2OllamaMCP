@@ -1,6 +1,6 @@
 [general]
-name=QGISMCP4Ollama
-description=QGISMCP4Ollama connects QGIS to an MCP Server
+name=QGIS2OllamaMCP
+description=QGIS2OllamaMCP connects QGIS to an MCP Server
 version=1.0
 qgisMinimumVersion=3.0
 author=TuNombre & Anita Graser

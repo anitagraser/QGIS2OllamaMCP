@@ -1,6 +1,6 @@
-# QGISMCP4Ollama - QGIS Model Context Protocol Integration
+# QGIS2OllamaMCP - QGIS Model Context Protocol Integration
 
-QGISMCP4Ollama connects [QGIS](https://qgis.org/) to any Ollama-hosted LLM through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro), allowing agentic interacations with and control of QGIS. This integration enables prompt assisted project creation, layer loading, code execution and more.
+QGIS2OllamaMCP connects [QGIS](https://qgis.org/) to any Ollama-hosted LLM through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/docs/getting-started/intro), allowing agentic interacations with and control of QGIS. This integration enables prompt assisted project creation, layer loading, code execution and more.
 
 This project is strongly based on the [BlenderMCP](https://github.com/ahujasid/blender-mcp/tree/main) project by [Siddharth Ahuja](https://x.com/sidahuj) and [QGIS MCP](https://github.com/jjsantos01/qgis_mcp) by [Juan Santos Ochoa](https://github.com/jjsantos01)    
 
@@ -29,7 +29,7 @@ To install the plugin, you need to copy the folder [qgis_mcp_plugin](/qgis_mcp_p
 
 ### Starting the connection in QGIS
 
-1. In QGIS, go to `plugins` > `QGIS MCP` > `QGIS MCP`
+1. In QGIS, go to `plugins` > `QGIS2OllamaMCP` > `QGIS2OllamaMCP`
     ![plugins menu](/assets/imgs/qgis-plugins-menu.png)
 2. Click "Start Server"
     ![start server](/assets/imgs/qgis-mcp-start-server.png)
@@ -37,7 +37,7 @@ To install the plugin, you need to copy the folder [qgis_mcp_plugin](/qgis_mcp_p
 3. Check the logs to see the connection status 
     ![alt text](/assets/imgs/qgis-log.png)
 
-### Starting the QGIS_MCP server
+### Starting the MCP server
 
 `python src/qgis_mcp/qgis_mcp_server.py `
 

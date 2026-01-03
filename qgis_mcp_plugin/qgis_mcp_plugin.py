@@ -40,12 +40,12 @@ class QgisMCPPluginServer(QObject):
             
             QgsMessageLog.logMessage(
                 f"MCP plugin listening on {self.host}:{self.port}", 
-                "QGIS MCP", Qgis.Info
+                "QGIS2OllamaMCP", Qgis.Info
                 )
             return True
         except Exception as e:
             QgsMessageLog.logMessage(
-                f"Failed to start: {str(e)}", "QGIS MCP", Qgis.Critical
+                f"Failed to start: {str(e)}", "QGIS2OllamaMCP", Qgis.Critical
                 )
             self.stop()
             return False
@@ -64,7 +64,7 @@ class QgisMCPPluginServer(QObject):
             
         self.socket = None
         self.client = None
-        QgsMessageLog.logMessage("MCP plugin stopped", "QGIS MCP", Qgis.Info)
+        QgsMessageLog.logMessage("MCP plugin stopped", "QGIS2OllamaMCP", Qgis.Info)
     
     def process_server(self):
         if not self.running:
@@ -76,11 +76,13 @@ class QgisMCPPluginServer(QObject):
                 try:
                     self.client, address = self.socket.accept()
                     self.client.setblocking(False)
-                    QgsMessageLog.logMessage(f"Connected to client: {address}", "QGIS MCP", Qgis.Info)
+                    QgsMessageLog.logMessage(f"Connected to client: {address}", 
+                                             "QGIS2OllamaMCP", Qgis.Info)
                 except BlockingIOError:
                     pass  # No connection waiting
                 except Exception as e:
-                    QgsMessageLog.logMessage(f"Error accepting connection: {str(e)}", "QGIS MCP", Qgis.Warning)
+                    QgsMessageLog.logMessage(f"Error accepting connection: {str(e)}", 
+                                             "QGIS2OllamaMCP", Qgis.Warning)
                 
             # Process existing connection
             if self.client:
@@ -104,27 +106,31 @@ class QgisMCPPluginServer(QObject):
                                 pass
                         else:
                             # Connection closed by client
-                            QgsMessageLog.logMessage("Client disconnected", "QGIS MCP", Qgis.Info)
+                            QgsMessageLog.logMessage("Client disconnected", 
+                                                     "QGIS2OllamaMCP", Qgis.Info)
                             self.client.close()
                             self.client = None
                             self.buffer = b''
                     except BlockingIOError:
                         pass  # No data available
                     except Exception as e:
-                        QgsMessageLog.logMessage(f"Error receiving data: {str(e)}", "QGIS MCP", Qgis.Warning)
+                        QgsMessageLog.logMessage(f"Error receiving data: {str(e)}", 
+                                                 "QGIS2OllamaMCP", Qgis.Warning)
                         self.client.close()
                         self.client = None
                         self.buffer = b''
                         
                 except Exception as e:
-                    QgsMessageLog.logMessage(f"Error with client: {str(e)}", "QGIS MCP", Qgis.Warning)
+                    QgsMessageLog.logMessage(f"Error with client: {str(e)}", 
+                                             "QGIS2OllamaMCP", Qgis.Warning)
                     if self.client:
                         self.client.close()
                         self.client = None
                     self.buffer = b''
                     
         except Exception as e:
-            QgsMessageLog.logMessage(f"Server error: {str(e)}", "QGIS MCP", Qgis.Critical)
+            QgsMessageLog.logMessage(f"Server error: {str(e)}", 
+                                     "QGIS2OllamaMCP", Qgis.Critical)
 
     def execute_command(self, command):
         try:
@@ -152,19 +158,23 @@ class QgisMCPPluginServer(QObject):
             handler = handlers.get(cmd_type)
             if handler:
                 try:
-                    QgsMessageLog.logMessage(f"Executing handler for {cmd_type}", "QGIS MCP", Qgis.Info)
+                    QgsMessageLog.logMessage(f"Executing handler for {cmd_type}", 
+                                             "QGIS2OllamaMCP", Qgis.Info)
                     result = handler(**params)
-                    QgsMessageLog.logMessage(f"Handler execution complete", "QGIS MCP", Qgis.Info)
+                    QgsMessageLog.logMessage(f"Handler execution complete", 
+                                             "QGIS2OllamaMCP", Qgis.Info)
                     return {"status": "success", "result": result}
                 except Exception as e:
-                    QgsMessageLog.logMessage(f"Error in handler: {str(e)}", "QGIS MCP", Qgis.Critical)
+                    QgsMessageLog.logMessage(f"Error in handler: {str(e)}", 
+                                             "QGIS2OllamaMCP", Qgis.Critical)
                     traceback.print_exc()
                     return {"status": "error", "message": str(e)}
             else:
                 return {"status": "error", "message": f"Unknown command type: {cmd_type}"}
                 
         except Exception as e:
-            QgsMessageLog.logMessage(f"Error executing command: {str(e)}", "QGIS MCP", Qgis.Critical)
+            QgsMessageLog.logMessage(f"Error executing command: {str(e)}", 
+                                     "QGIS2OllamaMCP", Qgis.Critical)
             traceback.print_exc()
             return {"status": "error", "message": str(e)}
     
@@ -518,7 +528,7 @@ class QgisMCPDockWidget(QDockWidget):
     closed = pyqtSignal()
     
     def __init__(self, iface):
-        super().__init__("QGIS MCP")
+        super().__init__("QGIS2OllamaMCP")
         self.iface = iface
         self.server = None
         self.setup_ui()
@@ -590,13 +600,13 @@ class QgisMCPPlugin:
     
     def initGui(self):
         self.action = QAction(
-            "QGIS MCP",
+            "QGIS2OllamaMCP",
             self.iface.mainWindow()
         )
         self.action.setCheckable(True)
         self.action.triggered.connect(self.toggle_dock)
         
-        self.iface.addPluginToMenu("QGIS MCP", self.action)
+        self.iface.addPluginToMenu("QGIS2OllamaMCP", self.action)
         self.iface.addToolBarIcon(self.action)
     
     def toggle_dock(self, checked):
@@ -626,7 +636,7 @@ class QgisMCPPlugin:
             self.dock_widget = None
             
         # Remove plugin menu item and toolbar icon
-        self.iface.removePluginMenu("QGIS MCP", self.action)
+        self.iface.removePluginMenu("QGIS2OllamaMCP", self.action)
         self.iface.removeToolBarIcon(self.action)
 
 
